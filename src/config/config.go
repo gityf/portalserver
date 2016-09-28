@@ -8,7 +8,7 @@ import (
 type PortalServerConfig struct {
 	Port          int    `json:"port"`
 	PprofPort     int    `json:"profport"`
-	Secret        string `json:"secret"`
+	SharedSecret  string `json:"secret"`
 	AuthType      string `json:"auth_type"`
 	RetryTime     int    `json:"retry"`
 	Timeout       int    `json:"timeout"`
