@@ -36,8 +36,8 @@ const (
 
 //portal authen mode: PAP/CHAP
 const (
-	AUTHMODE_CHAP		uint = 0x00
-	AUTHMODE_PAP		uint = 0x01
+	AUTHMODE_CHAP		uint8 = 0x00
+	AUTHMODE_PAP		uint8 = 0x01
 )
 
 //length definition for all fields
@@ -175,6 +175,7 @@ func (p *PortalPacket) Marshal() []byte {
 	if len(p.AVPS) > 0 {
 		packet.Write(avps.Bytes())
 	}
+	p.Raw = packet.Bytes()
 	return packet.Bytes()
 }
 
@@ -238,6 +239,22 @@ func (p *PortalPacket) VerifyAuthenticator() bool {
 	}
 
 	return true
+}
+
+func (p *PortalPacket) HexDumpString() (desc string) {
+
+	return
+}
+
+func (p *PortalPacket) GetAttrByType(attrType uint8) (exist bool, attr AttributeValuePair) {
+	for _, v := range p.AVPS {
+		if v.Type == attrType {
+			exist = true
+			attr = v
+			return
+		}
+	}
+	return
 }
 
 // Parses IP Addresses
