@@ -42,20 +42,20 @@ const (
 )
 
 type PortalClient struct {
-	UserName     string
-	Password     string
-	BrasIP       string
-	FrameIP      string
-	UserMac      string
-	ChapPassword string
-	SerialNo     uint16
-	ErrCode      uint8
-	ReqId        uint16
-	Status       uint8
-	Packet       *PortalPacket
-	PortInfo     string
-	TextInfo     string
-	AuthType     string
+	UserName         string
+	Password         string
+	BrasIP           string
+	FrameIP          string
+	UserMac          string
+	ChapPassword     string
+	SerialNo         uint16
+	ErrCode          uint8
+	ReqId            uint16
+	Status           uint8
+	Packet           *PortalPacket
+	PortInfo         string
+	TextInfo         string
+	AuthType         string
 	IsSendAffAckAuth bool
 }
 
@@ -70,6 +70,100 @@ func (p *PortalClient) NewSerialNo() uint16 {
 
 //do REQ_CHALLENGE
 func (p *PortalClient) ReqChallenge() (ret bool) {
+	//set the default error code
+	p.ErrCode = PCMERR_UNKNOWN;
+
+	//make REQ_CHALLENGE packet
+	if !p.MakeRequestPacket(PCMREQTYPE_CHALLENGE) {
+		logger.Error("make CHALLENGE request packet failed.")
+		return
+	}
+
+	logger.Debug("make CHALLENGE request packet ok.")
+
+	//send REQ_CHALLENGE packet and receive ack
+	if !p.SendReqAndRecvAckPkt(PCMREQTYPE_CHALLENGE) {
+		logger.Error("receive chanllege ack failed.")
+		p.ErrCode = PCMERR_RECVTIMEOUT
+		return
+	}
+
+	var portalPacket = &PortalPacket{}
+
+	logger.Debug("send CHALLENGE request packet ok.")
+	//Analyze the ACK_CHALLENGE packet
+	portalPacket.PackageType = PACKETTYPE_RSP
+	portalPacket.PortalVersion = DEF_PORTAL_VERSION2
+	portalPacket.SharedSecret = config.Cfg.SharedSecret
+	portalPacket.Authenticator = p.Packet.Authenticator
+	portalPacket.Raw = p.Packet.Raw
+	//analyze the ack packet
+	portalPacket.UnMarshal()
+
+	logger.Debug("parse CHALLENGE ack packet ok.")
+
+	//dump ack packet to buffer
+	portalPacket.HexDumpString()
+
+	//check the serial no and packet type
+	if p.Packet.SerialNo != portalPacket.SerialNo || portalPacket.PackageType != PACKETTYPE_ACKCHALLENGE {
+		//serial no not matched.
+		logger.Error("serial not matched for CHALLENGE ack. [%v/%v]", p.Packet.SerialNo, portalPacket.SerialNo);
+		return
+	}
+
+	//check error code
+	switch portalPacket.ErrCode {
+	case 0:
+		//ok
+		p.ErrCode = PCMERR_OK;
+	case 1:
+		//REQ_CHALLENGE refused
+		p.ErrCode = PCMERR_CHALLENGEREFUSED
+	case 2:
+		//connection created
+		p.ErrCode = PCMERR_CONNECTCREATED
+	case 3:
+		//same user authenticating
+		p.ErrCode = PCMERR_SAMEUSERAUTHING
+	default:
+		p.ErrCode = PCMERR_UNKNOWN
+	}
+
+	var exist bool
+	var attr AttributeValuePair
+	//get the TEXTINFO attrib if have
+	exist, attr = p.Packet.GetAttrByType(ATTRTYPE_TEXTINFO)
+	if !exist {
+		logger.Error("get textinfo is NULL!");
+	} else {
+		p.TextInfo = attr.Content
+	}
+
+	//if ack failed, return
+	if p.ErrCode != PCMERR_OK {
+		logger.Error("CHALLENGE return error. [%v]", p.ErrCode)
+		return
+	}
+
+	//save the req id
+	p.ReqId = portalPacket.ReqID
+
+	//Get the chap challenge attrib
+	exist, attr = p.Packet.GetAttrByType(ATTRTYPE_CHALLENGE)
+	if !exist {
+		logger.Error("get CHAP challenge is failed!")
+		return
+	} else {
+		p.ChapPassword = attr.Content
+	}
+
+	logger.Debug("get CHALLENGE attrib from ack packet ok.")
+
+	//calculate CHAP_CHALLENGE attrib
+	p.ChapPassword = p.CalcChapPassword(p.ReqId, p.Password, p.ChapPassword)
+
+	logger.Debug("do CHALLENGE request ok.")
 	return
 }
 
@@ -127,7 +221,7 @@ func (p *PortalClient) ReqAuth() (ret bool) {
 		p.ErrCode = PCMERR_SAMEUSERAUTHING;
 	default:
 		p.ErrCode = PCMERR_UNKNOWN;
-	break;
+		break;
 	}
 	var exist bool
 	var attr AttributeValuePair
@@ -155,7 +249,7 @@ func (p *PortalClient) ReqAuth() (ret bool) {
 	logger.Debug("parse AUTHEN ack packet ok.")
 
 	//send the AFF_ACK_AUTH according to the
-	if(p.IsSendAffAckAuth) {
+	if (p.IsSendAffAckAuth) {
 		//make AFF_ACK_AUTH packet
 
 		//save the req id for PAP
@@ -202,6 +296,81 @@ func (p *PortalClient) ReqLogin() (ret bool) {
 //do REQ_LOGOUT
 func (p *PortalClient) ReqLogout() (ret bool) {
 	p.Status = PCMSTATUS_LOGOUT
+
+	//set default error code
+	p.ErrCode = PCMERR_UNKNOWN;
+
+	//make REQ_LOGOUT packet
+	if !p.MakeRequestPacket(PCMREQTYPE_LOGOUT) {
+		logger.Error("make LOGOUT packet failed.")
+		return
+	}
+
+	logger.Debug("make LOGOUT request packet ok.");
+
+	//send and recv ack
+	if !p.SendReqAndRecvAckPkt(PCMREQTYPE_LOGOUT) {
+		logger.Error("send LOGOUT request packet failed.")
+		return
+	}
+
+	logger.Debug("send LOGOUT request packet and receive response packet ok.")
+
+	//if REQ_LOGOUT for REQ_CHALLENGE or REQ_AUTH, return directly
+	if p.Status == PCMSTATUS_CHALLENGE || p.Status == PCMSTATUS_AUTH {
+		logger.Warn("logout do nothing for CHALLENGE or AUTHEN.  [%v]", p.Status)
+		return
+	}
+	var portalPacket = PortalPacket{}
+	portalPacket.PackageType = PACKETTYPE_RSP
+	portalPacket.PortalVersion = DEF_PORTAL_VERSION2
+	portalPacket.SharedSecret = config.Cfg.SharedSecret
+	portalPacket.Authenticator = p.Packet.Authenticator
+	portalPacket.Raw = p.Packet.Raw
+	if err := portalPacket.UnMarshal(); err != nil {
+		logger.Error("parse LOGOUT ack packet failed.");
+		return
+	}
+
+	logger.Debug("parse LOGOUT ack packet ok.")
+
+	//dump ack packet to buffer
+	portalPacket.HexDumpString()
+
+	//check the serial no and packet type
+	if p.SerialNo != portalPacket.SerialNo || portalPacket.PackageType == PACKETTYPE_ACKLOGOUT {
+		logger.Error("serial no or portal type not matched.")
+		return
+	}
+
+	//check error code
+	switch portalPacket.ErrCode {
+	case 0:
+		//logout ok
+		p.ErrCode = PCMERR_OK
+	case 1:
+		//logout refused
+		p.ErrCode = PCMERR_LOGOUTREFUSED
+	default:
+		p.ErrCode = PCMERR_UNKNOWN
+	}
+	var attr AttributeValuePair
+	var exist bool
+	//get the TEXTINFO attrib if have
+	exist, attr = p.Packet.GetAttrByType(ATTRTYPE_TEXTINFO)
+	if !exist {
+		logger.Error("get textinfo is NULL!");
+	} else {
+		p.TextInfo = attr.Content
+	}
+
+	//if ack failed, return
+	if p.ErrCode != PCMERR_OK {
+		logger.Error("do LOGOUT failed. [%v]", p.ErrCode);
+		return
+	}
+
+	logger.Debug("do LOGOUT ok.")
 	return
 }
 
@@ -299,7 +468,6 @@ func (p *PortalClient) MakeRequestPacket(reqType int) (ret bool) {
 		logger.Info("new serial no: %v", p.SerialNo);
 	}
 
-
 	if p.AuthType == "CHAP" {
 		//reqid is valid for CHAP
 		if reqType == PCMREQTYPE_AUTH || reqType == PCMREQTYPE_AFFACKAUTH || reqType == PCMREQTYPE_LOGOUT {
@@ -386,6 +554,39 @@ func (p *PortalClient) GetReqTypeByStatus() (desc string) {
 //this function must be called after MakeRequestPacket
 //received ack packet stored in m_pcmAckPktBuf.
 func (p *PortalClient) SendReqAndRecvAckPkt(packetType int) (ret bool) {
+	//check the request type
+	if (packetType < PCMREQTYPE_CHALLENGE) || (packetType > PCMREQTYPE_INFO) {
+		logger.Error("request type invalid. ")
+		return
+	}
+	var bRecvAck bool = true;
+	if (packetType == PCMREQTYPE_AFFACKAUTH) ||
+	(packetType == PCMREQTYPE_ACKLOGOUT) ||
+	((packetType == PCMREQTYPE_LOGOUT) &&
+	((p.Status == PCMSTATUS_CHALLENGE) ||
+	(p.Status == PCMSTATUS_AUTH))) {
+		//It's not necessary to receive ack
+		bRecvAck = false;
+	}
+	for ii := 0; ii < config.Cfg.RetryTime; ii++ {
+		//send and recv
+		//check whether we need receive ack packet
+		if !bRecvAck {
+			logger.Debug("need not receive ack packet.")
+			ret = true
+			break
+		}
+		// recv len
+		//GetMinPktLen
+		var rbytes int
+		if rbytes < p.Packet.GetMinPktLen() {
+			logger.Error("receive ack packet too short. [%v]", rbytes)
+			continue;
+		}
+		//recv
+		ret = true
+		break
+	}
 	return
 }
 

@@ -257,6 +257,13 @@ func (p *PortalPacket) GetAttrByType(attrType uint8) (exist bool, attr Attribute
 	return
 }
 
+func (p *PortalPacket) GetMinPktLen() int {
+	if p.PortalVersion == DEF_PORTAL_VERSION2 {
+		return 32
+	}
+	return 16
+}
+
 // Parses IP Addresses
 func (p *PortalPacket)ParseIP(content []byte) string {
 	return fmt.Sprintf("%d.%d.%d.%d", content[0], content[1], content[2], content[3])
