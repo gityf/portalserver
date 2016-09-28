@@ -1,0 +1,7 @@
+package global
+
+const (
+	ERR_JSON_MARSHAL_FAILED = 400
+	ERR_HTTP_PARSE_FAILED = 401
+	ERR_PANIC = 500
+)

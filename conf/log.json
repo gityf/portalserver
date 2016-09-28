@@ -1,0 +1,20 @@
+{
+    "LogLevel" : "trace",
+
+    "FileWriter" : {
+        "On": true,
+
+        "LogPath" : "./log/portalserver.log.info",
+        "RotateLogPath" : "./log/portalserver.log.info.%Y%M%D%H",
+
+        "WfLogPath" : "./log/portalserver.log.wf",
+        "RotateWfLogPath" : "./log/portalserver.log.wf.%Y%M%D%H",
+        
+        "PublicLogPath" : "./log/public.log",
+        "RotatePublicLogPath" : "./log/public.log.%Y%M%D%H"
+    },
+
+    "ConsoleWriter" : {
+        "On" : false
+    }
+}
