@@ -3,6 +3,7 @@ package logic
 import (
 	"context"
 	"global"
+	"config"
 )
 
 func HandleMessage(msg *context.Message) (resp *context.BaseResponse) {
@@ -27,6 +28,7 @@ func login(msg *context.Message)  (resp *context.BaseResponse) {
 		UserName: msg.UserName,
 		Password: msg.Password,
 		UserIP: msg.UserIP,
+		AuthType: config.Cfg.AuthType,
 	}
 	resp = context.NewBaseResponse()
 	if portalClient.ReqLogin() {
@@ -46,7 +48,7 @@ func logout(msg *context.Message)  (resp *context.BaseResponse) {
 		UserIP: msg.UserIP,
 	}
 	resp = context.NewBaseResponse()
-	if portalClient.ReqLogin() {
+	if portalClient.ReqLogout() {
 		resp.Errno = global.USER_RET_ERR_OK
 	} else {
 		resp.Errno = portalClient.GetUserErrCode()
@@ -63,7 +65,7 @@ func getVlanInfo(msg *context.Message)  (resp *context.BaseResponse) {
 		UserIP: msg.UserIP,
 	}
 	resp = context.NewBaseResponse()
-	if portalClient.ReqLogin() {
+	if portalClient.ReqVlaninfo() {
 		resp.Errno = global.USER_RET_ERR_OK
 	} else {
 		resp.Errno = portalClient.GetUserErrCode()

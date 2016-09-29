@@ -15,8 +15,8 @@ import (
 
 //packet type: REQ/RSP
 const (
-	PACKETTYPE_REQ uint = 1 //request packet
-	PACKETTYPE_RSP uint = 2 //response packet
+	PACKETTYPE_REQ = 1 //request packet
+	PACKETTYPE_RSP = 2 //response packet
 )
 
 const (
@@ -151,7 +151,7 @@ func (p *PortalPacket) Marshal() []byte {
 	packet.WriteByte(byte(p.ErrCode))
 	packet.WriteByte(byte(p.AttrNum))
 	if p.PortalVersion == DEF_PORTAL_VERSION2 {
-		if p.PackageType == PACKETTYPE_REQ {
+		if p.PortalType == PACKETTYPE_REQ {
 			p.Authenticator = []byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0} // 16 Zero Octets
 		}
 	}

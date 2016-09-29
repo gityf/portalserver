@@ -34,17 +34,6 @@ const (
 	PCMSTATUS_NTFLOGOUT = 6
 )
 
-//request type
-const (
-	PCMREQTYPE_CHALLENGE = 1
-	PCMREQTYPE_AUTH = 2
-	PCMREQTYPE_AFFACKAUTH = 3
-	PCMREQTYPE_LOGOUT = 4
-	PCMREQTYPE_NTFLOGOUT = 5
-	PCMREQTYPE_ACKLOGOUT = 6
-	PCMREQTYPE_INFO = 7
-)
-
 type PortalClient struct {
 	UserName         string
 	Password         string
@@ -78,7 +67,7 @@ func (p *PortalClient) ReqChallenge() (ret bool) {
 	p.ErrCode = PCMERR_UNKNOWN
 
 	//make REQ_CHALLENGE packet
-	if !p.MakeRequestPacket(PCMREQTYPE_CHALLENGE) {
+	if !p.MakeRequestPacket(PACKETTYPE_REQCHALLENGE) {
 		logger.Error("make CHALLENGE request packet failed.")
 		return
 	}
@@ -87,7 +76,7 @@ func (p *PortalClient) ReqChallenge() (ret bool) {
 	logger.Debug("CHALLENGE serial:%v,requ:\n%v", p.SerialNo, p.Packet.HexDumpString())
 
 	//send REQ_CHALLENGE packet and receive ack
-	if !p.SendReqAndRecvAckPkt(PCMREQTYPE_CHALLENGE) {
+	if !p.SendReqAndRecvAckPkt(PACKETTYPE_REQCHALLENGE) {
 		logger.Error("receive chanllege ack failed.")
 		p.ErrCode = PCMERR_RECVTIMEOUT
 		return
@@ -177,7 +166,7 @@ func (p *PortalClient) ReqAuth() (ret bool) {
 	p.ErrCode = PCMERR_UNKNOWN
 
 	//make REQ_AUTH packet
-	if !p.MakeRequestPacket(PCMREQTYPE_AUTH) {
+	if !p.MakeRequestPacket(PACKETTYPE_REQAUTH) {
 		logger.Error("make AUTHEN packet failed during login.")
 		return
 	}
@@ -185,7 +174,7 @@ func (p *PortalClient) ReqAuth() (ret bool) {
 	logger.Debug("AUTHEN serial:%v,requ:\n%v", p.SerialNo, p.Packet.HexDumpString())
 
 	//send REQ_CHALLENGE packet and receive ack
-	if !p.SendReqAndRecvAckPkt(PCMREQTYPE_AUTH) {
+	if !p.SendReqAndRecvAckPkt(PACKETTYPE_REQAUTH) {
 		logger.Error("send AUTHEN request or recv AUTHEN ack failed.")
 		p.ErrCode = PCMERR_RECVTIMEOUT
 		return
@@ -261,14 +250,14 @@ func (p *PortalClient) ReqAuth() (ret bool) {
 
 		//save the req id for PAP
 		p.ReqId = p.Packet.ReqID
-		if p.MakeRequestPacket(PCMREQTYPE_AFFACKAUTH) {
+		if p.MakeRequestPacket(PACKETTYPE_AFFACKAUTH) {
 			logger.Error("make AFF AUTHEN ack request packet failed.")
 			p.ErrCode = PCMERR_UNKNOWN
 			return
 		}
 
 		//send the AFF_ACK_AUTH packet
-		if !p.SendReqAndRecvAckPkt(PCMREQTYPE_AFFACKAUTH) {
+		if !p.SendReqAndRecvAckPkt(PACKETTYPE_AFFACKAUTH) {
 			logger.Error("send AFF AUTHEN request or receive AFF AUTHEN ack failed.")
 			p.ErrCode = PCMERR_UNKNOWN
 			return
@@ -307,7 +296,7 @@ func (p *PortalClient) ReqLogout() (ret bool) {
 	p.ErrCode = PCMERR_UNKNOWN
 
 	//make REQ_LOGOUT packet
-	if !p.MakeRequestPacket(PCMREQTYPE_LOGOUT) {
+	if !p.MakeRequestPacket(PACKETTYPE_REQLOGOUT) {
 		logger.Error("make LOGOUT packet failed.")
 		return
 	}
@@ -316,7 +305,7 @@ func (p *PortalClient) ReqLogout() (ret bool) {
 	logger.Debug("LOGOUT serial:%v,requ:\n%v", p.SerialNo, p.Packet.HexDumpString())
 
 	//send and recv ack
-	if !p.SendReqAndRecvAckPkt(PCMREQTYPE_LOGOUT) {
+	if !p.SendReqAndRecvAckPkt(PACKETTYPE_REQLOGOUT) {
 		logger.Error("send LOGOUT request packet failed.")
 		return
 	}
@@ -383,7 +372,7 @@ func (p *PortalClient) ReqVlaninfo() (ret bool) {
 	p.ErrCode = PCMERR_UNKNOWN
 
 	//make REQ_GETVLANINFO packet
-	if !p.MakeRequestPacket(PCMREQTYPE_INFO) {
+	if !p.MakeRequestPacket(PACKETTYPE_REQINFO) {
 		logger.Error("make getvlaninfo packet failed.")
 		return
 	}
@@ -392,7 +381,7 @@ func (p *PortalClient) ReqVlaninfo() (ret bool) {
 	logger.Debug("VLANINFO serial:%v,requ:\n%v", p.SerialNo, p.Packet.HexDumpString())
 
 	//send and recv ack
-	if !p.SendReqAndRecvAckPkt(PCMREQTYPE_INFO) {
+	if !p.SendReqAndRecvAckPkt(PACKETTYPE_REQINFO) {
 		logger.Error("send getvlaninfo request packet failed.")
 		return
 	}
@@ -447,7 +436,7 @@ func (p *PortalClient) ReqVlaninfo() (ret bool) {
 //used by portal server
 func (p *PortalClient) MakeRequestPacket(reqType uint8) (ret bool) {
 	//check the request type
-	if reqType < PCMREQTYPE_CHALLENGE || reqType > PCMREQTYPE_INFO {
+	if reqType < PACKETTYPE_REQCHALLENGE || reqType > PACKETTYPE_REQINFO {
 		logger.Error("req type invalid. ")
 		return
 	}
@@ -458,12 +447,13 @@ func (p *PortalClient) MakeRequestPacket(reqType uint8) (ret bool) {
 	p.Packet.PortalVersion = DEF_PORTAL_VERSION2
 	p.Packet.UserIP = inet_aton(net.ParseIP(p.UserIP))
 	p.Packet.UserPort = 0
+	p.Packet.PackageType = PACKETTYPE_REQ
 
 	//get the serial no of request
 	//if AFF_ACK_AUTH, we use current error code
 	//if REQ_LOGOUT, we need check the current error code
-	if reqType == PCMREQTYPE_AFFACKAUTH ||
-	(reqType == PCMREQTYPE_LOGOUT) && (p.Status == PCMSTATUS_CHALLENGE || p.Status == PCMSTATUS_AUTH) {
+	if reqType == PACKETTYPE_AFFACKAUTH ||
+	(reqType == PACKETTYPE_REQLOGOUT) && (p.Status == PCMSTATUS_CHALLENGE || p.Status == PCMSTATUS_AUTH) {
 		//if REQ_CHALLENGE or REQ_AUTH failed, we use the current serial no
 		//it's not necessary to get a new serial no
 		logger.Warn("REQ_LOGOUT for REQ_AUTH or REQ_CHALLENGE. [%v]", p.ErrCode)
@@ -477,7 +467,7 @@ func (p *PortalClient) MakeRequestPacket(reqType uint8) (ret bool) {
 
 	if p.AuthType == "CHAP" {
 		//reqid is valid for CHAP
-		if reqType == PCMREQTYPE_AUTH || reqType == PCMREQTYPE_AFFACKAUTH || reqType == PCMREQTYPE_LOGOUT {
+		if reqType == PACKETTYPE_REQAUTH || reqType == PACKETTYPE_AFFACKAUTH || reqType == PACKETTYPE_REQLOGOUT {
 			//if REQ_AUTH, AFF_ACK_AUTH or REQ_LOGOUT
 			//m_pcmCurReqID got in ACK_CHALLENGE
 			//get the request id
@@ -486,14 +476,14 @@ func (p *PortalClient) MakeRequestPacket(reqType uint8) (ret bool) {
 		p.Packet.AuthMode = AUTHMODE_CHAP
 	} else if p.AuthType == "PAP" {
 		// aff_ack_auth req_id is equal to ack_auth
-		if reqType == PCMREQTYPE_AFFACKAUTH {
+		if reqType == PACKETTYPE_AFFACKAUTH {
 			p.Packet.ReqID = p.ReqId
 			logger.Info("AFF_ACK_AUTH PAP request id: %v", p.Packet.ReqID)
 		}
 		p.Packet.AuthMode = AUTHMODE_PAP
 	}
 
-	if reqType == PCMREQTYPE_LOGOUT {
+	if reqType == PACKETTYPE_REQLOGOUT {
 		//check current error code
 		if p.Status == PCMSTATUS_CHALLENGE || p.Status == PCMSTATUS_AUTH {
 			//REQ_LOGOUT from REQ_CHALLENGE or REQ_AUTH
@@ -503,7 +493,7 @@ func (p *PortalClient) MakeRequestPacket(reqType uint8) (ret bool) {
 	}
 
 	//append all the attribs
-	if reqType == PCMREQTYPE_AUTH {
+	if reqType == PACKETTYPE_REQAUTH {
 		//attrib number is 2: user name and user passwd
 		p.Packet.AttrNum = 2
 		//append the username
@@ -532,7 +522,7 @@ func (p *PortalClient) MakeRequestPacket(reqType uint8) (ret bool) {
 			p.Packet.AuthMode = AUTHMODE_PAP
 		}
 	}
-	if reqType == PCMREQTYPE_INFO {
+	if reqType == PACKETTYPE_REQINFO {
 		p.Packet.AttrNum = 1
 		//append port type and len
 		var attr AttributeValuePair
@@ -567,18 +557,18 @@ func (p *PortalClient) GetReqTypeByStatus() (desc string) {
 //received ack packet stored in m_pcmAckPktBuf.
 func (p *PortalClient) SendReqAndRecvAckPkt(requType uint8) (ret bool) {
 	//check the request type
-	if (requType < PCMREQTYPE_CHALLENGE) || (requType > PCMREQTYPE_INFO) {
+	if (requType < PACKETTYPE_REQCHALLENGE) || (requType > PACKETTYPE_REQINFO) {
 		logger.Error("request type invalid. ")
 		return
 	}
 	var bRecvAck bool
 	//It's not necessary to receive ack
 	switch requType {
-	case PCMREQTYPE_AFFACKAUTH:
+	case PACKETTYPE_AFFACKAUTH:
 		bRecvAck = false
-	case PCMREQTYPE_ACKLOGOUT:
+	case PACKETTYPE_ACKLOGOUT:
 		bRecvAck = false
-	case PCMREQTYPE_LOGOUT:
+	case PACKETTYPE_REQLOGOUT:
 		if p.Status == PCMSTATUS_CHALLENGE || p.Status == PCMSTATUS_AUTH {
 			bRecvAck = false
 		}
@@ -621,6 +611,7 @@ func (p *PortalClient) SendReqAndRecvAckPkt(requType uint8) (ret bool) {
 }
 
 func (p *PortalClient) SendAndRecv() (size int, err error) {
+	logger.Debug("udp:%v", p.BrasIP + ":" + util.ToString(config.Cfg.BrasPort))
 	conn, e := net.Dial("udp",p.BrasIP + ":" + util.ToString(config.Cfg.BrasPort))
 	defer conn.Close()
 	if e != nil {

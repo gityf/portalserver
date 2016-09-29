@@ -11,7 +11,7 @@ other() {
 
 case "$1" in
     start)
-        doCurl "login?username=$2&password=$4&brasip=$3"
+        doCurl "login?username=$2&password=$4&brasip=$3&userip=192.168.1.5"
         ;;
     stop)
         doCurl  "logout?username=$2&brasip=$3"
