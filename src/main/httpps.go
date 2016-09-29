@@ -31,9 +31,7 @@ func FuncHandler(w http.ResponseWriter, r *http.Request, logId int64, messageTyp
 	}
 	w.Header().Set("content-type", "application/json; charset=utf-8")
 
-	resp := logic.HandleMessage(msg)
-	resp.ResponseJson(msg.Writer)
-	return resp
+	return logic.HandleMessage(msg)
 }
 
 var realPath string = "web/"

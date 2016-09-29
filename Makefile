@@ -19,7 +19,9 @@ output:build
 	mkdir -p output/conf
 	mkdir -p output/log
 	mkdir -p output/web
+	mkdir -p output/test
 	cp -r bin/portalserver output/bin/
 	cp -r conf/* output/conf/
 	cp -r web/* output/web/
+	cp -r test/* output/test/
 

@@ -65,11 +65,15 @@ func (r *BaseResponse) Error() string {
 }
 
 type FormStruct struct {
-	UserName string `json:"user_name"`
-	Password string `json:"password"`
-	BrasIP   string `json:"bras_ip"`
-	FrameIP  string `json:"frame_ip"`
-	UserMac  string `json:"user_mac"`
+	SerialNo   string `json:"serialno"`
+	PacketType string `json:"packet_type"`
+	UserName   string `json:"username"`
+	Password   string `json:"password"`
+	BrasIP     string `json:"brasip"`
+	UserIP     string `json:"userip"`
+	UserMac    string `json:"usermac"`
+	LogonTime  string `json:"logontime"`
+	OnlineTime int64  `json:"onlinetime"`
 }
 
 type Message struct {

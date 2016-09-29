@@ -7,6 +7,8 @@ import (
 	"crypto/md5"
 	"io"
 	"fmt"
+	logger "github.com/shengkehua/xlog4go"
+	"encoding/hex"
 )
 
 //packet type: REQ/RSP
@@ -120,6 +122,7 @@ type PortalPacket struct {
 	AVPS          []AttributeValuePair // A list of Attribute-value Pairs
 	Raw           []byte               // A buffer with the original raw data
 	UserIPStr     string
+	PackageLen    int
 }
 
 // Attribute-Value Pair structure
@@ -176,6 +179,7 @@ func (p *PortalPacket) Marshal() []byte {
 		packet.Write(avps.Bytes())
 	}
 	p.Raw = packet.Bytes()
+	p.PackageLen = len(p.Raw)
 	return packet.Bytes()
 }
 
@@ -204,11 +208,17 @@ func (p *PortalPacket) UnMarshal() (err error) {
 	var ii uint8
 
 	for ii = 0; ii < p.AttrNum; ii++ {
+
 		var attr AttributeValuePair
 		attr.Type = uint8(p.Raw[index])
 		index++
 		attr.Length = uint8(p.Raw[index])
 		index++
+		if index+int(attr.Length) > p.PackageLen {
+			logger.Error("bad package attr type:%v,len:%v, value:%v",
+				attr.Type, attr.Length, p.Raw[index:])
+			break
+		}
 		attr.Content = string(p.Raw[index:index+int(attr.Length)])
 		index += int(attr.Length)
 	}
@@ -242,7 +252,7 @@ func (p *PortalPacket) VerifyAuthenticator() bool {
 }
 
 func (p *PortalPacket) HexDumpString() (desc string) {
-
+	desc = hex.Dump(p.Raw)
 	return
 }
 
@@ -267,6 +277,24 @@ func (p *PortalPacket) GetMinPktLen() int {
 // Parses IP Addresses
 func (p *PortalPacket)ParseIP(content []byte) string {
 	return fmt.Sprintf("%d.%d.%d.%d", content[0], content[1], content[2], content[3])
+}
+
+// Parses UINT16
+func (p *PortalPacket)ParseUint16(content []byte) uint16 {
+	if len(content) >= 2 {
+		number := uint16(content[1]) | uint16(content[0])<<8
+		return number
+	}
+	return 0
+}
+
+// Parses UINT32
+func (p *PortalPacket)ParseUint32(content []byte) uint32 {
+	if len(content) > 4 {
+		number := uint32(content[3]) | uint32(content[2])<<8 | uint32(content[1])<<16 | uint32(content[0])<<24
+		return number
+	}
+	return 0
 }
 
 func (p *PortalPacket) PortalTypeString() (desc string) {

@@ -4,7 +4,7 @@
     "secret": "88----89",
     "auth_type": "PAP",
     "retry": 3,
-    "timeout": 15000,
+    "timeout": 2000,
     "bras_port": 2000,
     "bras_ip": "127.0.0.1",
     "portal_version": 2

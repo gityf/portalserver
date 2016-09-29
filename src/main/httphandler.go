@@ -95,6 +95,7 @@ func (portalServerH *portalServerHandler) ServeHTTP(w http.ResponseWriter, r *ht
 	var logId int64
 	var resp HttpResponser
 	var errCode int
+	var info map[string]interface{}
 
 	tBegin := time.Now()	
 	portalServerH.wg.Add(1)
@@ -114,12 +115,29 @@ func (portalServerH *portalServerHandler) ServeHTTP(w http.ResponseWriter, r *ht
 			errCode = global.ERR_PANIC
 			logger.Error("LogId:%d HandleError# recover errno:%d stack:%s", logId, errCode, string(debug.Stack()))
 		}
-		logger.Warn("cost:%v", latency)
+		logger.Warn("%v, cost:%v", info, latency)
 	}()
 
 	logId = logidGenerator.GetNextId()
-
+	r.ParseForm()
+	info = GetHttpRequestInfo(r)
 	resp = portalServerH.Callfunc(w, r, logId, portalServerH.MessageType)
+	return
+}
+
+func GetHttpRequestInfo(r *http.Request) (info map[string]interface{}) {
+	info = make(map[string]interface{})
+	info["url"] = r.URL.Path
+	info["param"] = r.Form
+	info["host"] = r.Host
+	info["remote"]=r.RemoteAddr
+	s1 := strings.Split(r.URL.Path, "/")
+	if len(s1) > 0 {
+		info["name"] = s1[len(s1)-1]
+	} else {
+		info["name"] = "NoBody"
+	}
+	info["now"]=time.Now()
 	return
 }
 
