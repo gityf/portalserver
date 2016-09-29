@@ -170,10 +170,12 @@ func (p *PortalPacket) Marshal() []byte {
 		temp := packet.Bytes()
 		h.Write(temp[0:PP_OFF_AUTHENTICATOR])
 		h.Write(p.Authenticator)
+		logger.Debug("Auth:%v", hex.Dump(p.Authenticator))
 		if len(p.AVPS) > 0 {
 			h.Write(avps.Bytes())
 		}
 		io.WriteString(h, p.SharedSecret)
+		logger.Debug("sharedSecret:%v", p.SharedSecret)
 		p.Authenticator = h.Sum(nil)
 		packet.Write(p.Authenticator)
 	}
