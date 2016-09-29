@@ -9,9 +9,11 @@ It implementing  the portal2.0 protocol and work well with HUAWEI bras and ZTE b
 Web API
 ---
 There are three api for web caller.
-`/portalserver/login ` is login api,  input params  of username,password,userip and brasip  should be  exist in request package.
-`/portalserver/logout` is logout api,  input params  of username,userip and brasip  should be  exist in request package.
-`/portalserver/getvlaninfo` is getvlaninfo api,  input params  of username,userip and brasip  should be  exist in request package.
+**/portalserver/login ** is login api,  input params  of username,password,userip and brasip  should be  exist in request package.
+
+**/portalserver/logout** is logout api,  input params  of username,userip and brasip  should be  exist in request package.
+
+**/portalserver/getvlaninfo** is getvlaninfo api,  input params  of username,userip and brasip  should be  exist in request package.
 
 LICENSE
 -------
