@@ -151,7 +151,7 @@ func (p *PortalPacket) Marshal() []byte {
 	packet.WriteByte(byte(p.ErrCode))
 	packet.WriteByte(byte(p.AttrNum))
 	if p.PortalVersion == DEF_PORTAL_VERSION2 {
-		if p.PortalType == PACKETTYPE_REQ {
+		if p.PackageType == PACKETTYPE_REQ {
 			p.Authenticator = []byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0} // 16 Zero Octets
 		}
 	}

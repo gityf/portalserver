@@ -655,6 +655,7 @@ func (p *PortalClient) Send() (size int, err error) {
 		err = e
 		return
 	}
+
 	conn.SetWriteDeadline(time.Now().Add(time.Duration(config.Cfg.Timeout)*time.Millisecond))
 	logger.Debug("Begin to send packet.")
 
