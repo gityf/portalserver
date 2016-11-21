@@ -62,6 +62,6 @@ var USER_RET_DESC = []string{
 	"connect aips",
 	"create ur rsp packet failed",
 	"init udppeer object failed",
-	"send udp packet failed",
+	"send udp packet failed or timeout",
 	"unknown error.",
 }
