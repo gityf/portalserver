@@ -4,6 +4,7 @@ import (
 	"context"
 	"global"
 	"config"
+	logger "github.com/shengkehua/xlog4go"
 )
 
 func HandleMessage(msg *context.Message) (resp *context.BaseResponse) {
@@ -30,6 +31,9 @@ func login(msg *context.Message)  (resp *context.BaseResponse) {
 		UserIP: msg.UserIP,
 		AuthType: config.Cfg.AuthType,
 	}
+	logger.Debug("login Message:%v.", msg)
+	logger.Debug("login portalClient brasip=%v,username=%v,password=%v,userip=%v.",
+		portalClient.BrasIP, portalClient.UserName, portalClient.Password, portalClient.UserIP)
 	resp = context.NewBaseResponse()
 	if portalClient.ReqLogin() {
 		resp.Errno = global.USER_RET_ERR_OK

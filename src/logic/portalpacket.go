@@ -169,6 +169,7 @@ func (p *PortalPacket) Marshal() []byte {
 		h := md5.New()
 		temp := packet.Bytes()
 		h.Write(temp[0:PP_OFF_AUTHENTICATOR])
+		logger.Debug("temp:%v", hex.Dump(temp))
 		h.Write(p.Authenticator)
 		logger.Debug("Auth:%v", hex.Dump(p.Authenticator))
 		if len(p.AVPS) > 0 {
@@ -312,21 +313,22 @@ func inet_ntoa(ipnr uint32) net.IP {
 }
 
 // Convert net.IP to int32
-func inet_aton(ipnr net.IP) uint32 {
-	bits := strings.Split(ipnr.String(), ".")
-
-	b0, _ := strconv.Atoi(bits[0])
-	b1, _ := strconv.Atoi(bits[1])
-	b2, _ := strconv.Atoi(bits[2])
-	b3, _ := strconv.Atoi(bits[3])
-
+func inet_aton(ipnr string) uint32 {
+	bits := strings.Split(ipnr, ".")
 	var sum uint32
 
-	sum += uint32(b0) << 24
-	sum += uint32(b1) << 16
-	sum += uint32(b2) << 8
-	sum += uint32(b3)
+	if len(bits) == 4 {
+		b0, _ := strconv.Atoi(bits[0])
+		b1, _ := strconv.Atoi(bits[1])
+		b2, _ := strconv.Atoi(bits[2])
+		b3, _ := strconv.Atoi(bits[3])
 
+
+		sum += uint32(b0) << 24
+		sum += uint32(b1) << 16
+		sum += uint32(b2) << 8
+		sum += uint32(b3)
+	}
 	return sum
 }
 

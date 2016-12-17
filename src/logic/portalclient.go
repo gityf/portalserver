@@ -445,7 +445,7 @@ func (p *PortalClient) MakeRequestPacket(reqType uint8) (ret bool) {
 	p.Packet.Version = DEF_PORTAL_VERSION2
 	p.Packet.PortalType = reqType
 	p.Packet.PortalVersion = DEF_PORTAL_VERSION2
-	p.Packet.UserIP = inet_aton(net.ParseIP(p.UserIP))
+	p.Packet.UserIP = inet_aton(p.UserIP)
 	p.Packet.UserPort = 0
 	p.Packet.PackageType = PACKETTYPE_REQ
 
