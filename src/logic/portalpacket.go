@@ -7,7 +7,7 @@ import (
 	"crypto/md5"
 	"io"
 	"fmt"
-	logger "github.com/shengkehua/xlog4go"
+	logger "github.com/xlog4go"
 	"encoding/hex"
 	"strings"
 	"strconv"

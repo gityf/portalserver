@@ -1,7 +1,7 @@
 package main
 
 import (
-	logger "github.com/shengkehua/xlog4go"
+	logger "github.com/xlog4go"
 
 	"time"
 )
@@ -12,7 +12,7 @@ func main() {
 	}
 	defer logger.Close()
 
-	var name = "shengkehua"
+	var name = "xx"
 	for {
 		logger.Trace("log4go by %s", name)
 		logger.Debug("log4go by %s", name)

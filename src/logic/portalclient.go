@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/binary"
 	"crypto/md5"
-	logger "github.com/shengkehua/xlog4go"
+	logger "github.com/xlog4go"
 	"config"
 	"net"
 	"util"

@@ -9,7 +9,7 @@ import (
 	"global"
 	"net/http"
 	"strings"
-	logger "github.com/shengkehua/xlog4go"
+	logger "github.com/xlog4go"
 	"os"
 	"io/ioutil"
 	"context"

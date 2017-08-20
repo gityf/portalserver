@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"io"
 	"encoding/json"
-	logger "github.com/shengkehua/xlog4go"
+	logger "github.com/xlog4go"
 	"global"
 	"net/http"
 )

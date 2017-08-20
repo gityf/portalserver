@@ -4,7 +4,7 @@ import (
 	"context"
 	"global"
 	"config"
-	logger "github.com/shengkehua/xlog4go"
+	logger "github.com/xlog4go"
 )
 
 func HandleMessage(msg *context.Message) (resp *context.BaseResponse) {

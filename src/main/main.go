@@ -11,7 +11,7 @@ import (
 	"runtime"
 	"runtime/debug"
 
-	logger "github.com/shengkehua/xlog4go"
+	logger "github.com/xlog4go"
 	"global"
 	"util"
 )

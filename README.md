@@ -21,7 +21,7 @@ LICENSE
 
 This library is under Apache License, Version 2.0. For more details please see LICENSE file.
 
-Copyright
+Author
 ---------
 
 Copyright (C) 2016 Wang Yaofu. All rights reserved.

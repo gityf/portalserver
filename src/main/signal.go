@@ -4,7 +4,7 @@ package main
    中断信号的捕获函数
 */
 import (
-	logger "github.com/shengkehua/xlog4go"
+	logger "github.com/xlog4go"
 	"os"
 	"os/signal"
 	"syscall"

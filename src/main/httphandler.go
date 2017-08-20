@@ -10,7 +10,7 @@ import (
 	"sync"
 	"strings"
 
-	logger "github.com/shengkehua/xlog4go"
+	logger "github.com/xlog4go"
 	"net/url"
 	"reflect"
 	"strconv"
