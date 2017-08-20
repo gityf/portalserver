@@ -28,3 +28,11 @@ Wang Yaofu.
 Data Flow
 -------
 ![data flow](https://github.com/gityf/portalserver/blob/master/doc/portal-server-flow.png)
+
+Auth-login Flow
+-------
+![auth login flow](https://github.com/gityf/portalserver/blob/master/doc/portal-server-auth-login.png)
+
+Auth-logout Flow
+-------
+![auth logout flow](https://github.com/gityf/portalserver/blob/master/doc/portal-server-auth-logout.png)
