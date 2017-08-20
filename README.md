@@ -22,6 +22,9 @@ LICENSE
 This library is under Apache License, Version 2.0. For more details please see LICENSE file.
 
 Author
----------
+-------
+Wang Yaofu. 
 
-Copyright (C) 2016 Wang Yaofu. All rights reserved.
+Data Flow
+-------
+![data flow](https://github.com/gityf/portalserver/blob/master/doc/portal-server-flow.png)
