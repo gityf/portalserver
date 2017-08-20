@@ -29,10 +29,10 @@ Data Flow
 -------
 ![data flow](https://github.com/gityf/portalserver/blob/master/doc/portal-server-flow.png)
 
-Auth-login Flow
+Auth-login Portal2.0 Packet
 -------
 ![auth login flow](https://github.com/gityf/portalserver/blob/master/doc/portal-server-auth-login.png)
 
-Auth-logout Flow
+Auth-logout Portal2.0 Packet
 -------
 ![auth logout flow](https://github.com/gityf/portalserver/blob/master/doc/portal-server-auth-logout.png)
