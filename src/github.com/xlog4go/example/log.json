@@ -9,6 +9,10 @@
 
         "WfLogPath" : "./demo.log.wf",
         "RotateWfLogPath" : "./demo.log.wf-%Y%M%D%H"
+
+        "PublicLogPath" : "./demo.log.pub",
+        "RotatePublicLogPath" : "./demo.log.pub.%Y%M%D%H",
+        "PublicLogPrefix" : 0
     },
 
     "ConsoleWriter" : {
