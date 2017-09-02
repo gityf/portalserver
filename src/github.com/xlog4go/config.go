@@ -14,6 +14,7 @@ type ConfFileWriter struct {
 	RotateWfLogPath     string `json:"RotateWfLogPath"`
 	PublicLogPath       string `json:"PublicLogPath"`
 	RotatePublicLogPath string `json:"RotatePublicLogPath"`
+	PublicLogPrefix     int    `json:"PublicLogPrefix"`
 }
 
 type ConfConsoleWriter struct {
@@ -47,6 +48,7 @@ func SetupLogWithConf(file string) (err error) {
 			} else {
 				w.SetLogLevelCeil(ERROR)
 			}
+			w.SetLogPrefix(kLogPrefixTime | kLogPrefixLevel | kLogPrefixCode)
 			Register(w)
 		}
 
@@ -56,6 +58,7 @@ func SetupLogWithConf(file string) (err error) {
 			wfw.SetPathPattern(lc.FW.RotateWfLogPath)
 			wfw.SetLogLevelFloor(WARNING)
 			wfw.SetLogLevelCeil(ERROR)
+			wfw.SetLogPrefix(kLogPrefixTime | kLogPrefixLevel | kLogPrefixCode)
 			Register(wfw)
 		}
 
@@ -65,6 +68,7 @@ func SetupLogWithConf(file string) (err error) {
 			public.SetPathPattern(lc.FW.RotatePublicLogPath)
 			public.SetLogLevelFloor(PUBLIC)
 			public.SetLogLevelCeil(PUBLIC)
+			public.SetLogPrefix(lc.FW.PublicLogPrefix)
 			Register(public)
 		}
 	}

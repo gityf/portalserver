@@ -48,7 +48,7 @@ func (w *ConsoleWriter) Write(r *Record) error {
 	if w.color {
 		fmt.Fprint(os.Stdout, ((*colorRecord)(r)).String())
 	} else {
-		fmt.Fprint(os.Stdout, r.String())
+		fmt.Fprint(os.Stdout, r.StringInfo(kLogPrefixTime | kLogPrefixLevel | kLogPrefixCode))
 	}
 	return nil
 }

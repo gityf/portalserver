@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"sync"
 	"time"
+	"bytes"
 )
 
 var (
@@ -25,6 +26,12 @@ const (
 	PUBLIC
 )
 
+const (
+	kLogPrefixTime  = 0x01
+	kLogPrefixLevel = 0x02
+	kLogPrefixCode  = 0x04
+)
+
 const tunnel_size_default = 1024
 
 type Record struct {
@@ -32,10 +39,28 @@ type Record struct {
 	code  string
 	info  string
 	level int
+	buf   *bytes.Buffer
 }
 
-func (r *Record) String() string {
-	return fmt.Sprintf("%s [%s] <%s> %s\n", r.time, LEVEL_FLAGS[r.level], r.code, r.info)
+func (r *Record) StringInfo(logPrefix int) string {
+	r.buf = &bytes.Buffer{}
+	if logPrefix & kLogPrefixTime > 0 {
+		r.buf.WriteString(r.time)
+		r.buf.WriteString(" ")
+	}
+	if logPrefix & kLogPrefixLevel > 0 {
+		r.buf.WriteString("[")
+		r.buf.WriteString(LEVEL_FLAGS[r.level])
+		r.buf.WriteString("] ")
+	}
+	if logPrefix & kLogPrefixCode > 0 {
+		r.buf.WriteString("<")
+		r.buf.WriteString(r.code)
+		r.buf.WriteString("> ")
+	}
+	r.buf.WriteString(r.info)
+	r.buf.WriteString("\n")
+	return r.buf.String()
 }
 
 type Writer interface {

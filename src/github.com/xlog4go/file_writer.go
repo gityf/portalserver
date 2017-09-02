@@ -21,6 +21,7 @@ type FileWriter struct {
 	fileBufWriter *bufio.Writer
 	actions       []func(*time.Time) int
 	variables     []interface{}
+	logPrefix     int
 }
 
 func NewFileWriter() *FileWriter {
@@ -41,6 +42,10 @@ func (w *FileWriter) SetLogLevelFloor(floor int) {
 
 func (w *FileWriter) SetLogLevelCeil(ceil int) {
 	w.logLevelCeil = ceil
+}
+
+func (w *FileWriter) SetLogPrefix(logPrefix int) {
+	w.logPrefix = logPrefix
 }
 
 func (w *FileWriter) SetPathPattern(pattern string) error {
@@ -94,7 +99,7 @@ func (w *FileWriter) Write(r *Record) error {
 	if w.fileBufWriter == nil {
 		return errors.New("no opened file")
 	}
-	if _, err := w.fileBufWriter.WriteString(r.String()); err != nil {
+	if _, err := w.fileBufWriter.WriteString(r.StringInfo(w.logPrefix)); err != nil {
 		return err
 	}
 	return nil
